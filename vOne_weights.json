@@ -1,0 +1,12 @@
+{
+    "clinical_cancerSite": 1.5,
+    "snv_variantPDot": 2,
+    "snv_Impact": 1.5,
+    "cnv_geneName": 8.6,
+    "cnv_Impact": 1,
+    "fusion_Impact": 1, 
+    "fusion_gene3": 10.25,
+    "snv_geneMarker": 8,
+    "snv_geneName": 6,
+    "fusion_gene5": 10.25
+}

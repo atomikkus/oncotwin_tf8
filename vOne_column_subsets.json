@@ -1,0 +1,6 @@
+{
+  "snv_subset": ["patientID", "geneName", "variantPDot", "Impact", "geneMarker"],
+  "cnv_subset": ["patientID", "geneName", "Impact"],
+  "fusion_subset": ["patientID", "gene5", "gene3", "Impact"],
+  "clinical_subset": ["patientID", "cancerSite"]
+}
