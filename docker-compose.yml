@@ -9,7 +9,7 @@ services:
     image: oncotwin_first8_np
     container_name: oncotwin_api
     ports:
-      - "8001:8001"
+      - "5010:5010"
     volumes:
       # Mount the api_outputs directory to persist results on the host machine
       - ./api_outputs:/app/api_outputs
@@ -21,4 +21,5 @@ services:
       - USER_PASSWORD=${USER_PASSWORD}
       - ECRF_EMAIL=${ECRF_EMAIL}
       - ECRF_PASSWORD=${ECRF_PASSWORD}
+      - PORT=5010
     restart: unless-stopped 
