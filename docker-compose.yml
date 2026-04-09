@@ -15,6 +15,8 @@ services:
       - ./api_outputs:/app/api_outputs
     environment:
       # Pass credentials from a local .env file into the container
+      - ECRF_LOGIN_URL=${ECRF_LOGIN_URL}
+      - LOGIN_URL=${LOGIN_URL}
       - USER_EMAIL=${USER_EMAIL}
       - USER_PASSWORD=${USER_PASSWORD}
       - ECRF_EMAIL=${ECRF_EMAIL}
