@@ -14,12 +14,14 @@ services:
       # Mount the api_outputs directory to persist results on the host machine
       - ./api_outputs:/app/api_outputs
     environment:
-      # Pass credentials from a local .env file into the container
-      - ECRF_LOGIN_URL=${ECRF_LOGIN_URL}
+      # Pass config from a local .env file into the container
       - LOGIN_URL=${LOGIN_URL}
+      - ECRF_BASE_URL=${ECRF_BASE_URL}
       - USER_EMAIL=${USER_EMAIL}
       - USER_PASSWORD=${USER_PASSWORD}
+      - OBG_APPLICATION_ID=${OBG_APPLICATION_ID}
       - ECRF_EMAIL=${ECRF_EMAIL}
       - ECRF_PASSWORD=${ECRF_PASSWORD}
+      - OBC_APPLICATION_ID=${OBC_APPLICATION_ID}
       - PORT=5010
     restart: unless-stopped 

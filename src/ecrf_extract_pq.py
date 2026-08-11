@@ -18,6 +18,15 @@ load_dotenv(override=True)
 
 wd = os.getcwd()
 
+def require_env(name):
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"{name} must be set in environment variables")
+    return value
+
+def get_ecrf_base_url():
+    return require_env("ECRF_BASE_URL").rstrip("/")
+
 ## Patient Data Exporter
 class PatientDataExporter:
     def __init__(self, pathforjsons, samples, api_url, resume=False, max_workers=20):
@@ -55,14 +64,12 @@ class PatientDataExporter:
         return session
 
     def _load_token(self):
-        ecrf_login_url = os.getenv("ECRF_LOGIN_URL", "https://www.v2.api.ecrf.4basecare.co.in/user/login")
+        ecrf_login_url = f"{get_ecrf_base_url()}/user/login"
         body = {
-            "email": os.getenv("ECRF_EMAIL"),
-            "password": os.getenv("ECRF_PASSWORD")
+            "email": require_env("ECRF_EMAIL"),
+            "password": require_env("ECRF_PASSWORD"),
+            "applicationId": require_env("OBC_APPLICATION_ID"),
         }
-        
-        if not body["email"] or not body["password"]:
-            raise ValueError("ECRF_EMAIL and ECRF_PASSWORD must be set in environment variables")
         
         try:
             response = self.session.post(ecrf_login_url, json=body, timeout=30)
@@ -225,7 +232,7 @@ def process_data(input_dir, output_dir, resume=False, max_workers=10):
     
     pathforjsons = os.path.join(temp_dir, 'json_response')
     samples = os.path.join(input_dir, "retrieved_list.txt") # Read from the input directory
-    api_url = "https://www.v2.api.ecrf.4basecare.co.in/integration/getExternalApiResponseByPatientId/"
+    api_url = f"{get_ecrf_base_url()}/integration/getExternalApiResponseByPatientId/"
     
     try:
         if not resume:

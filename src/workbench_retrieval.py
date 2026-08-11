@@ -8,6 +8,15 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
+def require_env(name):
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"{name} must be set in environment variables")
+    return value
+
+def get_obg_base_url():
+    return require_env("LOGIN_URL").rstrip("/")
+
 def get_auth_token(session, email, password):
     """
     Authenticates with the API using a session object to retrieve a token.
@@ -20,8 +29,12 @@ def get_auth_token(session, email, password):
     Returns:
         str: The authentication token if successful, None otherwise.
     """
-    login_url = os.getenv("LOGIN_URL")
-    login_payload = {"email": email, "password": password}
+    login_url = get_obg_base_url()
+    login_payload = {
+        "email": email,
+        "password": password,
+        "applicationId": require_env("OBG_APPLICATION_ID"),
+    }
 
     try:
         with session.post(f'{login_url}/user/login', json=login_payload, timeout=10) as response:
@@ -49,7 +62,7 @@ def get_cdss_data_chunk(session, auth_token, patient_ids_chunk):
     Returns:
         list: A list of patient data dictionaries if successful, None otherwise.
     """
-    cdss_url = f"{os.getenv('LOGIN_URL')}/integration/get_cdss_data"
+    cdss_url = f"{get_obg_base_url()}/integration/get_cdss_data"
     headers = {'Authorization': f'Bearer {auth_token}'}
 
     try:
@@ -181,8 +194,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # --- Configuration ---
-    user_email = os.getenv("USER_EMAIL")
-    user_password = os.getenv("USER_PASSWORD")
+    user_email = require_env("USER_EMAIL")
+    user_password = require_env("USER_PASSWORD")
     id_filename = args.samples
     output_directory = args.output_dir
 
