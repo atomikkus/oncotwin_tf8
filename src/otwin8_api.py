@@ -167,9 +167,22 @@ async def run_single_pipeline_task(job_id: str, request: SingleRequest, refresh:
         )
         
         stdout, stderr = await process.communicate()
+        stdout_text = (stdout or b"").decode(errors="replace").strip()
+        stderr_text = (stderr or b"").decode(errors="replace").strip()
         
         if process.returncode != 0:
-            raise RuntimeError(f"Pipeline failed for doctor_id {doctor_id}: {stderr.decode().strip()}")
+            # run_pipeline_pq.py prints failures with print() → stdout, not stderr.
+            detail = stderr_text or stdout_text or "(no stdout/stderr captured)"
+            logger.error(
+                "Pipeline failed for doctor_id %s (exit %s)\nstdout:\n%s\nstderr:\n%s",
+                doctor_id,
+                process.returncode,
+                stdout_text[-8000:],
+                stderr_text[-4000:],
+            )
+            raise RuntimeError(
+                f"Pipeline failed for doctor_id {doctor_id} (exit {process.returncode}): {detail[-4000:]}"
+            )
             
         # Verify output files exist
         json_path = os.path.join(sub_task_dir, "matches_consolidated.json")
@@ -338,6 +351,7 @@ async def process_patients_batch(
         raise HTTPException(status_code=400, detail="The 'requests' list cannot be empty.")
     
     job_id = str(uuid.uuid4())
+    request_payload = request.model_dump()
     
     initial_job_data = {
         "job_id": job_id,
@@ -349,9 +363,17 @@ async def process_patients_batch(
         "doctor_ids_success": [],
         "doctor_ids_failed": [],
         "errors": [],
-        "output_files": None
+        "output_files": None,
+        "request": request_payload,
     }
     set_job_status(job_id, initial_job_data)
+
+    job_dir = os.path.join(os.getcwd(), "api_outputs", job_id)
+    os.makedirs(job_dir, exist_ok=True)
+    request_path = os.path.join(job_dir, "request.json")
+    with open(request_path, "w") as f:
+        json.dump(request_payload, f, indent=2)
+    logger.info(f"Saved request payload for job {job_id} to {request_path}")
     
     background_tasks.add_task(run_batch_pipeline_async, job_id, request)
     
